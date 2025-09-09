@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Canal GOAT - Ao Vivo</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background-color: black;
+      overflow: hidden;
+    }
+
+    #standbyVideo {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
+
+    #player {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: none;
+      z-index: 2;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Vídeo local de standby -->
+  <video id="standbyVideo" autoplay muted loop>
+    <source src="Canal GOAT - Esporte ao vivo todos os dias.mp4" type="video/mp4">
+    Seu navegador não suporta vídeo HTML5.
+  </video>
+
+  <!-- Player do YouTube -->
+  <iframe
+    id="player"
+    allow="autoplay; encrypted-media"
+    allowfullscreen
+  ></iframe>
+
+  <script>
+    const apiKey = "AIzaSyCVBW73Hej-6XyiSxgJI-p6-56VEq9tzLw";
+    const channelId = "UC_oToDrJ6uca7d1dFVBmLtg";
+    const iframe = document.getElementById("player");
+    const standbyVideo = document.getElementById("standbyVideo");
+
+    async function verificarLive() {
+      const apiURL = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&eventType=live&type=video&key=${apiKey}`;
+
+      try {
+        const response = await fetch(apiURL);
+        const data = await response.json();
+
+        if (data.items && data.items.length > 0) {
+          const videoId = data.items[0].id.videoId;
+          const embedURL = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+
+          // Mostrar o player, esconder vídeo
+          iframe.src = embedURL;
+          iframe.style.display = "block";
+          standbyVideo.style.display = "none";
+          standbyVideo.pause();
+
+          console.log("🔴 Live detectada. Player iniciado.");
+        } else {
+          // Sem live — volta para standby
+          iframe.src = "";
+          iframe.style.display = "none";
+          standbyVideo.style.display = "block";
+          standbyVideo.play();
+
+          console.log("⏸️ Nenhuma live. Tocando standby.");
+        }
+      } catch (error) {
+        console.error("Erro ao verificar status da live:", error);
+      }
+
+      // Verifica novamente em 30 segundos
+      setTimeout(verificarLive, 30000);
+    }
+
+    verificarLive();
+  </script>
+
+</body>
+</html>
